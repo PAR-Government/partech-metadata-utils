@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+}
+
+version = lib_version
+group = 'io.github.par-government'
+
+jar {
+    manifest {
+        attributes 'Built-By': 'PAR Goverment Services Corporation',
+                'Implementation-Title': 'Partech core metadata utils',
+                'Implementation-Version': version
+    }
+}
+
+task sourceJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        mavenPublication(MavenPublication) {
+            from components.java
+            artifactId 'core-metadata-utils'
+            artifacts = [jar, sourceJar, javadocJar]
+            pom {
+                name = 'Partech Core Metadata Utils'
+                description = 'Core interfaces and utilities for working with metadata.'
+                url = 'https://github.com/PAR-Government/partech-metadata-utils'
+                version = lib_version
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License, version 2.1'
+                        url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'Nathan Bedell'
+                        email = 'nathan_bedell@partech.com'
+                        organization = 'PAR Government Systems Corporation'
+                        organizationUrl = 'https://pargovernment.net/'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/PAR-Government/partech-metadata-utils.git'
+                    developerConnection = 'scm:git:ssh://github.com:PAR-Government/partech-metadata-utils.git'
+                    url = 'https://github.com/PAR-Government/partech-metadata-utils'
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,3 @@
+include ':core-metadata-utils'
+include ':atak-metadata-utils'
+rootProject.name = 'partech-metadata-utils'

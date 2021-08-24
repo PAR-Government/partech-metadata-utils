@@ -1,0 +1,139 @@
+
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id("org.jetbrains.dokka") version "1.4.10.2"
+}
+
+apply plugin: 'maven-publish'
+apply plugin: 'kotlin-kapt'
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    if (new File("$project.projectDir/../../../ATAK/app/build/libs/main.jar").exists()) {
+        println("using the autobuilder version of main.jar");
+        compileOnly fileTree(dir: '../../../ATAK/app/build/libs', include: '*.jar')
+    } else if (new File("$project.projectDir/../../../main.jar").exists()) {
+        println("using the sdk version of main.jar");
+        compileOnly fileTree(dir: '../../..', include: '*.jar')
+    } else if (new File("sdk/main.jar").exists()) {
+        println("using the local version of main.jar");
+        compileOnly fileTree(dir: '../sdk/main.jar', include: '*.jar')
+    } else if (project.rootProject.file("local.properties").exists()) {
+        def props = new Properties()
+        props.load(project.rootProject.file("local.properties").newDataInputStream())
+        def sdkdir = props.getProperty("sdk.path").toString()
+        if (sdkdir == null) {
+            println("error reading sdk.path from the local.properties file, this should point to the main.jar file");
+        }
+        if (new File(sdkdir).exists()) {
+            println("using the local version of ${sdkdir}");
+            compileOnly fileTree(dir: "${sdkdir}", include: '*.jar')
+        }
+    } else {
+        println("WARNING: could not find the sdk")
+    }
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation project(':core-metadata-utils')
+}
+
+version = lib_version
+group = 'io.github.par-government'
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) { release ->
+                from components.release
+                artifactId 'atak-metadata-utils'
+                artifact androidSourcesJar
+                artifact androidJavadocsJar
+                pom {
+                    name = 'Partech Metadata Utils Core'
+                    description = 'Core interfaces and utilities for working with metadata.'
+                    url = 'https://github.com/PAR-Government/partech-metadata-utils'
+                    version = version
+                    licenses {
+                        license {
+                            name = 'GNU Lesser General Public License, version 2.1'
+                            url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html'
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = 'Nathan Bedell'
+                            email = 'nathan_bedell@partech.com'
+                            organization = 'PAR Government Systems Corporation'
+                            organizationUrl = 'https://pargovernment.net/'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:git://github.com/PAR-Government/partech-metadata-utils.git'
+                        developerConnection = 'scm:git:ssh://github.com:PAR-Government/partech-metadata-utils.git'
+                        url = 'https://github.com/PAR-Government/partech-metadata-utils'
+                    }
+                }
+            }
+        }
+    }
+}
+
+android {
+    defaultConfig {
+        manifestPlaceholders = [
+                versionName: lib_version,
+                versionCode: lib_version_code
+        ]
+    }
+
+    compileSdkVersion 24
+    defaultConfig {
+        minSdkVersion 21
+    }
+
+    sourceSets {
+        main {
+            res.srcDirs = ['res']
+            java.srcDirs += "src/main/kotlin"
+        }
+    }
+
+    // Gradle complains:
+    afterEvaluate {
+        generateReleaseBuildConfig.enabled = true
+        generateDebugBuildConfig.enabled = false
+    }
+}
+
+task androidJar(type: Copy) {
+    from('build/intermediates/aar_main_jar/release/')
+    into('build/outputs/jar/')
+    include('classes.jar')
+    rename ('classes.jar', "partech-metadata-utils-atak-${version}.jar")
+}
+
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.javaCompileProvider.get().classpath
+        }
+    }
+    exclude '**/R.html', '**/R.*.html', '**/index.html'
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from "build/dokka/javadoc"
+}
+
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
+}
