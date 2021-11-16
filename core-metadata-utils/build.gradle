@@ -1,6 +1,8 @@
 plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm'
+    id 'maven-publish'
+    id 'signing'
 }
 
 repositories {
@@ -34,10 +36,11 @@ task javadocJar(type: Jar) {
 
 publishing {
     publications {
-        mavenPublication(MavenPublication) {
+        release(MavenPublication) {
             from components.java
             artifactId 'core-metadata-utils'
             artifacts = [jar, sourceJar, javadocJar]
+
             pom {
                 name = 'Partech Core Metadata Utils'
                 description = 'Core interfaces and utilities for working with metadata.'
@@ -65,4 +68,22 @@ publishing {
             }
         }
     }
+
+    repositories {
+            maven {
+                name = 'sonatype'
+                def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+                credentials {
+                    username "$mavenUser"
+                     password "$mavenPassword"
+                }
+            }
+    }
+}
+
+signing {
+    sign publishing.publications.release
 }

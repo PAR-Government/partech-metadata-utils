@@ -21,15 +21,7 @@ buildscript {
     }
 }
 
-plugins {
-    id 'maven-publish'
-    id 'signing'
-}
-
-group = 'io.github.par-government'
-
 allprojects {
-
     repositories {
         google()
         mavenCentral()
@@ -37,52 +29,4 @@ allprojects {
             url "https://jitpack.io"
         }
     }
-
-    publishing {
-        publications {
-            mavenPublication(MavenPublication) {
-                pom {
-                    url = 'https://github.com/PAR-Government/partech-metadata-utils'
-                    licenses {
-                        license {
-                            name = 'GNU Lesser General Public License, version 2.1'
-                            url = 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html'
-                        }
-                    }
-                    developers {
-                        developer {
-                            name = 'Nathan Bedell'
-                            email = 'nathan_bedell@partech.com'
-                            organization = 'PAR Government Systems Corporation'
-                            organizationUrl = 'https://pargovernment.net/'
-                        }
-                    }
-                    scm {
-                        connection = 'scm:git:git://github.com/PAR-Government/partech-metadata-utils.git'
-                        developerConnection = 'scm:git:ssh://github.com:PAR-Government/partech-metadata-utils.git'
-                        url = 'https://github.com/PAR-Government/partech-metadata-utils'
-                    }
-                }
-            }
-        }
-
-        repositories {
-            maven {
-                name = 'sonatype'
-                def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-                def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-                // TODO: Need to restore this when I get these credentials.
-                // credentials {
-                //     username "$mavenUser"
-                //      password "$mavenPassword"
-                // }
-            }
-        }
-    }
-
-    // TODO: Need to restore this
-    // signing {
-    //     publishing.publications.mavenPublication.sign
-    // }
 }
