@@ -7,6 +7,7 @@ plugins {
 
 apply plugin: 'maven-publish'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'signing'
 
 repositories {
     jcenter()
@@ -80,6 +81,24 @@ afterEvaluate {
                 }
             }
         }
+
+        repositories {
+            maven {
+                name = 'sonatype'
+                def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+                credentials {
+                    username "$mavenUser"
+                     password "$mavenPassword"
+                }
+            }
+        }
+    }
+
+    signing {
+        sign publishing.publications.release
     }
 }
 
@@ -137,3 +156,4 @@ task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
 }
+
